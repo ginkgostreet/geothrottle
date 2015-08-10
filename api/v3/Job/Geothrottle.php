@@ -49,8 +49,7 @@ function civicrm_api3_job_geothrottle($params) {
     'parse' => 0,
     'start' => $index + 1,
     'end' => $index + $limit,
-    'throttle' => 1,
-
+    'throttle' => 1
   ));
 
   return civicrm_api3_create_success($result, $params, 'Job', 'Geothrottle');
