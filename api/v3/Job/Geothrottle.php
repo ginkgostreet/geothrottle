@@ -21,34 +21,37 @@ function _civicrm_api3_job_geothrottle_spec(&$spec) {
  * @throws API_Exception
  */
 function civicrm_api3_job_geothrottle($params) {
-  if (true) {
+  $limit = civicrm_api3('Setting', 'getvalue', array(
+    'name' => "geocode_daily_limit",
+  ));
 
-
-    //$dao =& CRM_Core_DAO::executeQuery($sql, $values);
-    $limit = civicrm_api3('Setting', 'getvalue', array(
-      'name' => "geocode_daily_limit",
-    ));
-
-    $index = civicrm_api3('Setting', 'getvalue', array(
-      'name' => "geocode_index",
-    ));
-
-    $result = civicrm_api3('Setting', 'create', array(
-      'domain_id' => "current_domain",
-      'geocode_index' => $index + $limit,
-    ));
-
-    $result = civicrm_api3('job', 'geocode', array(
-      'geocoding' => 1,
-      'parse' => 0,
-      'start' => $index + 1,
-      'end' => $index + $limit,
-      'throttle' => 1,
-
-    ));
-
-    return civicrm_api3_create_success($result, $params, 'Job', 'Geothrottle');
-  } else {
-    throw new API_Exception('`field_id, `sid` and `title` are required fields', 4);
+  if (!is_numeric($limit)) {
+    throw new API_Exception('Could not fetch geocoding limit', 4);
   }
+
+  $index = civicrm_api3('Setting', 'getvalue', array(
+    'name' => "geocode_index",
+  ));
+  if (!is_numeric($index)) {
+    throw new API_Exception('Could not fetch geocoding index', 5);
+  }
+
+  $result = civicrm_api3('Setting', 'create', array(
+    'domain_id' => "current_domain",
+    'geocode_index' => $index + $limit,
+  ));
+  if ($result['is_error'] != 0) {
+    throw new API_Exception('Unable to update geocoding Index', 6);
+  }
+
+  $result = civicrm_api3('job', 'geocode', array(
+    'geocoding' => 1,
+    'parse' => 0,
+    'start' => $index + 1,
+    'end' => $index + $limit,
+    'throttle' => 1,
+
+  ));
+
+  return civicrm_api3_create_success($result, $params, 'Job', 'Geothrottle');
 }
